@@ -21,11 +21,11 @@
       Robert Klep <robert@ilse.nl>  -- Expansion function fix
 */
 
-#include <config.h>
+/* #include <config.h> */
 
 #include "sha1.h"
 
-#include <stdalign.h>
+#include "stdalign.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
