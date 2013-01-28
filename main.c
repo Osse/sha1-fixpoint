@@ -1,18 +1,48 @@
 #include <inttypes.h>
 #include <string.h>
+#include <signal.h>
+#include <stdlib.h>
 #include "sha1.h"
 
+uint8_t input[20]  = {0};
+uint8_t output[20] = {0};
+
+void increment_input() {
+    int i, n;
+    input[0]++;
+    if (input[0] == 0) {
+        n = 1;
+        while (input[n] == 255)
+            n++;
+        input[n]++;
+        for(i = 0; i < n; i++)
+            input[i] = 0;
+    }
+}
+
+void print_input() {
+    size_t i;
+    for(i = 19; i-- > 0; )
+        printf("%02x", input[i]);
+    printf("\n");
+}
+
+void handle_signal(int sig) {
+    print_input();
+    if (sig == SIGTERM)
+        exit(0);
+}
+
 int main(int argc, char const *argv[]) {
-    char input[20]  = {0};
-    char output[20] = {0};
-    char result[20] =
-        { 0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d, 0x32, 0x55,
-          0xbf, 0xef, 0x95, 0x60, 0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09 };
+    signal(SIGTERM, handle_signal);
+    signal(SIGUSR1, handle_signal);
 
-    sha1_buffer(input, 0, output);
+    do {
+        increment_input();
+        sha1_buffer((char*)input, 0, output);
+    } while (memcmp(output, input, 20) != 0);
 
-    if (memcmp(output, result, 20) == 0)
-        return 0;
-    else
-        return 1;
+    print_input();
+
+    return 0;
 }
