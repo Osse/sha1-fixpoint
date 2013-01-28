@@ -9,9 +9,9 @@ int main(int argc, char const *argv[]) {
         { 0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d, 0x32, 0x55,
           0xbf, 0xef, 0x95, 0x60, 0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09 };
 
-    sha1_buffer(input, 20, output);
+    sha1_buffer(input, 0, output);
 
-    if (memcmp(output, result, 40) == 0)
+    if (memcmp(output, result, 20) == 0)
         return 0;
     else
         return 1;
