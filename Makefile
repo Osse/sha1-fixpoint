@@ -2,7 +2,7 @@ SRCS       := main.c sha1.c
 OBJS       := $(SRCS:%.c=%.o)
 DEPS       := $(SRCS:%.c=%.d)
 EXECUTABLE := stablefinder
-CFLAGS     := -Wall -Werror -c -MMD -MP
+CFLAGS     := -Wall -Werror -c -MMD -MP -std=c99
 
 all: $(EXECUTABLE)
 
