@@ -10,21 +10,20 @@ uint8_t input[20]  = {0};
 uint8_t output[20] = {0};
 
 void increment_input() {
-    int i, n;
+    int n;
     input[0]++;
     if (input[0] == 0) {
         n = 1;
         while (input[n] == 255)
             n++;
         input[n]++;
-        for(i = 0; i < n; i++)
+        for(int i = 0; i < n; i++)
             input[i] = 0;
     }
 }
 
 void print_input() {
-    size_t i;
-    for(i = 19; i-- > 0; )
+    for(size_t i = 19; i-- > 0; )
         printf("%02x", input[i]);
     printf("\n");
 }
