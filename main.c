@@ -23,7 +23,7 @@ void increment_input() {
 }
 
 void print_input() {
-    for(size_t i = 19; i-- > 0; )
+    for(uint8_t i = 20; i-- > 0;)
         printf("%02x", input[i]);
     printf("\n");
 }
