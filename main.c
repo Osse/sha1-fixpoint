@@ -5,6 +5,8 @@
 #include "sha1.h"
 
 #define REPORT_EVERY 1000000
+#define TRUE 1
+#define FALSE 0
 
 uint8_t input[20]  = {0};
 uint8_t output[20] = {0};
@@ -32,23 +34,23 @@ double calc_converage_ratio() {
     return sha / exp;
 }
 
-void print_input() {
+void print_input(uint8_t appendNewline) {
     for(uint8_t i = 20; i-- > 0;)
         printf("%02x", input[i]);
-    printf("\n");
+    if (appendNewline)
+        printf("\n");
 }
 
 void print_report() {
     printf("Trying SHA ");
-    for(uint8_t i = 20; i-- > 0;)
-        printf("%02x", input[i]);
+    print_input(FALSE);
     printf("; covered %.40lf%% of search space", calc_converage_ratio()*100);
     //Todo: calc and display ETA
     printf("\n");
 }
 
 void handle_signal(int sig) {
-    print_input();
+    print_input(TRUE);
     if (sig == SIGTERM)
         exit(0);
 }
@@ -67,7 +69,7 @@ int main(int argc, char const *argv[]) {
         sha1_buffer((char*)input, 0, output);
     } while (memcmp(output, input, 20) != 0);
 
-    print_input();
+    print_input(TRUE);
 
     return 0;
 }
