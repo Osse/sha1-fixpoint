@@ -22,6 +22,16 @@ void increment_input() {
     }
 }
 
+double calc_converage_ratio() {
+    double sha = 0;
+    double exp = 1;
+    for (uint8_t i = 0; i < 20; i++) {
+        sha += input[i] * exp;
+        exp *= 256.0;
+    }
+    return sha / exp;
+}
+
 void print_input() {
     for(uint8_t i = 20; i-- > 0;)
         printf("%02x", input[i]);
@@ -30,10 +40,9 @@ void print_input() {
 
 void print_report() {
     printf("Trying SHA ");
-    for (uint8_t i = 0; i < 20; i++) {
-        printf("%02x", input[19-i]);
-    }
-    printf("; covered %7.4f%% of search space", 0.0 /*Todo: write function to calc coverage percentage*/);
+    for(uint8_t i = 20; i-- > 0;)
+        printf("%02x", input[i]);
+    printf("; covered %.40lf%% of search space", calc_converage_ratio()*100);
     //Todo: calc and display ETA
     printf("\n");
 }
