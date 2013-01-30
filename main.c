@@ -11,6 +11,11 @@
 uint8_t input[20]  = {0};
 uint8_t output[20] = {0};
 
+void display_help() {
+    printf("Help!\n"); //Todo: add actual help content
+    exit(0);
+}
+
 void increment_input() {
     int n;
     input[0]++;
@@ -49,6 +54,37 @@ void print_report() {
     printf("\n");
 }
 
+void convert_string_to_sha(const char* instr) {
+    uint8_t idx = 0;
+    int16_t i = strlen(instr);
+
+    if (i > 40) { //sanity check (SHA1 is max 40 chars long)
+        printf("Input is too long! (%i chars long, max 40 allowed)\n", i);
+        exit(1);
+    }
+
+    char bufr[42], *pStart, *pEnd;
+    strcpy(bufr, instr); //copy the input so we can manipulate it
+    pStart = bufr + i; //start at the end of the string
+
+    while (i >= 2 && idx < 20) { //while there's still two chars left
+        pStart -= 2;    //move the offset two to the left
+        i -= 2;
+        input[idx] = (uint8_t)strtol(pStart, &pEnd, 16); //parse those two hex digits
+        idx++;          //move up the array index
+        *pStart = 0;    //write a bin 0 to the string to terminate the next group here
+    }
+    if (i == 1) { //if we got an uneven number of hex digits, we have a single digit left to parse
+        pStart--; //move the offset pointer only one to the left
+        i--;
+        input[idx] = (uint8_t)strtol(pStart, &pEnd, 16); //parse the remaining digit
+    }
+
+    printf("Starting with SHA ");
+    print_input(FALSE);
+    printf("; that means the first %.40lf%% of search space are already assumed covered\n", calc_converage_ratio()*100);
+}
+
 void handle_signal(int sig) {
     print_input(TRUE);
     if (sig == SIGTERM)
@@ -58,6 +94,17 @@ void handle_signal(int sig) {
 int main(int argc, char const *argv[]) {
     signal(SIGTERM, handle_signal);
     signal(SIGUSR1, handle_signal);
+
+    //process command line arguments (if any)
+    for (uint8_t j = 1; j < argc; j++) {
+        if (strcmp(argv[j], "-h") == 0)
+            display_help();
+        else if (strcmp(argv[j], "-s") == 0) {
+            if (j < argc-1) {
+                convert_string_to_sha(argv[j+1]);
+            }
+        }
+    }
 
     uint32_t i = 0;
     do {
