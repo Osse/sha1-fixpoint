@@ -168,6 +168,7 @@ int main(int argc, char const *argv[]) {
         sha1_buffer((char*)input, 0, output);
     } while (memcmp(output, input, 20) != 0);
 
+    printf("Fixpoint found: ");
     print_sha(TRUE, input);
 
     return 0;
