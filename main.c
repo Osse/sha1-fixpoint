@@ -16,8 +16,15 @@ uint8_t target[20] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 clock_t oldTicks;
 int32_t printHeaderEvery = 30;
 
-void display_help() {
-    printf("Help!\n"); //Todo: add actual help content
+void display_help(const char* progName) {
+    printf("SHA1 Fixpoint calculation program\nWill try to find a value x for which x==sha1(x) holds\n\n");
+    printf("Usage:\n    %s [-s <starting SHA>] [-t <target SHA>] [other options...]\n\n", progName);
+    printf("Options:\n");
+    printf("  -h            print this help and exit\n");
+    printf("  -s <SHA>      starting SHA for this search\n");
+    printf("  -t <SHA>      target SHA for this search (ending point)\n");
+    //printf("  -r <num>      print a report line every <num> SHAs\n");
+    printf("  -H <num>      print report header every <num> reports\n");
     exit(0);
 }
 
@@ -135,7 +142,7 @@ int main(int argc, char const *argv[]) {
     //process command line arguments (if any)
     for (uint8_t j = 1; j < argc; j++) {
         if (strcmp(argv[j], "-h") == 0)
-            display_help();
+            display_help(argv[0]);
         else if (strcmp(argv[j], "-s") == 0) {
             if (j < argc-1) {
                 convert_string_to_sha(argv[++j], input);
@@ -148,7 +155,7 @@ int main(int argc, char const *argv[]) {
                 convert_string_to_sha(argv[++j], target);
             }
         }
-        else if (strcmp(argv[j], "-r") == 0) {
+        else if (strcmp(argv[j], "-H") == 0) {
             if (j < argc-1) {
                 printHeaderEvery = atoi(argv[++j]);
             }
