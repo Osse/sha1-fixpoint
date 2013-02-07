@@ -97,10 +97,6 @@ void convert_string_to_sha(const char* instr, uint8_t outarr[]) {
         i--;
         outarr[idx] = (uint8_t)strtol(pStart, &pEnd, 16); //parse the remaining digit
     }
-
-    printf("Starting with SHA ");
-    print_sha(FALSE, input);
-    printf("; that means the first %.40lf%% of search space are already assumed covered\n", calc_converage_ratio()*100);
 }
 
 void handle_signal(int sig) {
@@ -124,7 +120,19 @@ int main(int argc, char const *argv[]) {
                 convert_string_to_sha(argv[j+1], input);
             }
         }
+        else if (strcmp(argv[j], "-t") == 0) {
+            if (j < argc-1) {
+                convert_string_to_sha(argv[j+1], target);
+            }
+        }
     }
+    
+    printf("Starting with SHA: ");
+    print_sha(TRUE, input);
+    printf("Target SHA:        ");
+    print_sha(TRUE, target);
+    printf("That means       %.40lf%% of total search space are assumed covered\n", calc_converage_ratio()*100);
+    printf("\n");
 
     uint32_t i = 0;
     oldTicks = clock();
