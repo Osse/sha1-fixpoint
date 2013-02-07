@@ -1,7 +1,7 @@
 SRCS       := main.c sha1.c
 OBJS       := $(SRCS:%.c=%.o)
 DEPS       := $(SRCS:%.c=%.d)
-EXECUTABLE := stablefinder
+EXECUTABLE := sha1-fixpoint
 CFLAGS     := -Wall -Werror -c -MMD -MP -std=c99
 
 all: $(EXECUTABLE)
@@ -14,7 +14,7 @@ $(EXECUTABLE): $(OBJS)
 	gcc $(OBJS) -o $(EXECUTABLE)
 
 %.o: %.c
-	gcc $(CFLAGS) -MF "$(@:%.o=.%.d)" "$<" -o "$@" 
+	gcc $(CFLAGS) -MF "$(@:%.o=%.d)" "$<" -o "$@" 
 
 clean:
 	rm -rf $(OBJS) $(DEPS) $(EXECUTABLE)
