@@ -14,6 +14,7 @@ uint8_t output[20] = {0};
 uint8_t target[20] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 clock_t oldTicks;
+int32_t printHeaderEvery = 30;
 
 void display_help() {
     printf("Help!\n"); //Todo: add actual help content
@@ -63,7 +64,7 @@ void printETA() {
         exp *= 256.0;
     }
     double etaYears = sha * stepSecs / REPORT_EVERY / 3600 / 24 / 365;
-    printf("step: %.3lfs; ETA: %.3le years", stepSecs, etaYears);
+    printf(" %6.3lfs | %.3le", stepSecs, etaYears);
     oldTicks = newTicks;
 }
 
@@ -74,10 +75,18 @@ void print_sha(uint8_t appendNewline, const uint8_t sha[]) {
         printf("\n");
 }
 
+void print_report_header(uint8_t sepAbove, uint8_t sepBelow) {
+    if (sepAbove)
+        printf("-------------------------------------------------------------------------------------------------------------\n");
+    printf("             Last tried SHA              |          total search space coverage         | step len| ETA [yrs]\n");
+    //      00000000000000000000000000000000001e8482 |  0.0000000000000000000000000000000000000001% |  0.530s | 2.456e+34
+    if (sepBelow)
+        printf("-------------------------------------------------------------------------------------------------------------\n");
+}
+
 void print_report() {
-    printf("Trying SHA ");
     print_sha(FALSE, input);
-    printf("; covered %.40lf%% of search space; ", calc_converage_ratio()*100);
+    printf(" | %43.40lf%% |", calc_converage_ratio()*100);
     printETA();
     printf("\n");
 }
@@ -129,14 +138,19 @@ int main(int argc, char const *argv[]) {
             display_help();
         else if (strcmp(argv[j], "-s") == 0) {
             if (j < argc-1) {
-                convert_string_to_sha(argv[j+1], input);
+                convert_string_to_sha(argv[++j], input);
             }
         }
         else if (strcmp(argv[j], "-t") == 0) {
             if (j < argc-1) {
                 for(uint8_t i = 20; i-- > 0;)
                     target[i] = 0;
-                convert_string_to_sha(argv[j+1], target);
+                convert_string_to_sha(argv[++j], target);
+            }
+        }
+        else if (strcmp(argv[j], "-r") == 0) {
+            if (j < argc-1) {
+                printHeaderEvery = atoi(argv[++j]);
             }
         }
     }
@@ -148,6 +162,7 @@ int main(int argc, char const *argv[]) {
             break;
         }
 
+    //Print starting data
     printf("Starting with SHA: ");
     print_sha(TRUE, input);
     printf("Target SHA:        ");
@@ -157,11 +172,17 @@ int main(int argc, char const *argv[]) {
         printf("Considering     %43.40lf%% of total search space for this run\n", calc_space_size_left()*100);
     printf("\n");
 
-    uint32_t i = 0;
+    uint32_t i = 0; 
+    int32_t hdrCtr = -1;
     oldTicks = clock();
+    print_report_header(FALSE, TRUE);
     do {
         increment_input();
-        if (i++ >= REPORT_EVERY) {
+        if (++i >= REPORT_EVERY) {
+            if ((printHeaderEvery != 0) && (++hdrCtr >= printHeaderEvery)) {
+                hdrCtr = 0;
+                print_report_header(TRUE,TRUE);
+            }
             i = 0;
             print_report();
         }
