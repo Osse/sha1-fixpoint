@@ -15,6 +15,8 @@ uint8_t target[20] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 
 clock_t oldTicks;
 int32_t printHeaderEvery = 30;
+int     gargc;
+char const  **gargv;
 
 void display_help(const char* progName) {
     printf("SHA1 Fixpoint calculation program\nWill try to find a value x for which x==sha1(x) holds\n\n");
@@ -126,16 +128,35 @@ void convert_string_to_sha(const char* instr, uint8_t outarr[]) {
 }
 
 void handle_signal(int sig) {
-    print_sha(TRUE, input);
-    if (sig == SIGTERM)
+    if (sig == SIGTERM || sig == SIGINT) {
+        printf("\nExecution interrupted at SHA ");
+        print_sha(FALSE, input);
+        printf("; to continue at this SHA next time, you can use:\n  ");
+        for (int i = 0; i < gargc; i++) {
+            if (strcmp(*(gargv+i), "-s") == 0 && i < gargc-1) {
+                printf("-s ");
+                print_sha(FALSE, input);
+                printf(" ");
+                i++;
+            }
+            else { 
+                printf("%s ", *(gargv+i));
+            }
+        }
+        printf("\n\n");
         exit(0);
+    }
 }
 
 int main(int argc, char const *argv[]) {
     signal(SIGTERM, handle_signal);
+    signal(SIGINT, handle_signal);
     #ifndef _WIN32
     signal(SIGUSR1, handle_signal);
     #endif
+
+    gargc = argc;
+    gargv = argv;
 
     uint8_t nonDefaultTarget = FALSE;
 
