@@ -2,6 +2,7 @@
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <time.h>
 #include "sha1.h"
 
 #define REPORT_EVERY 1000000
@@ -10,6 +11,9 @@
 
 uint8_t input[20]  = {0};
 uint8_t output[20] = {0};
+uint8_t target[20] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+clock_t oldTicks;
 
 void display_help() {
     printf("Help!\n"); //Todo: add actual help content
@@ -39,6 +43,20 @@ double calc_converage_ratio() {
     return sha / exp;
 }
 
+void printETA() {
+    clock_t newTicks = clock();
+    double stepSecs = ((double)(newTicks-oldTicks))/CLOCKS_PER_SEC;
+    double sha = 0;
+    double exp = 1;
+    for (uint8_t i = 0; i < 20; i++) {
+        sha += (target[i] - input[i]) * exp;
+        exp *= 256.0;
+    }
+    double etaYears = sha * stepSecs / REPORT_EVERY / 3600 / 24 / 365;
+    printf("step: %.3lfs; ETA: %.3le years", stepSecs, etaYears);
+    oldTicks = newTicks;
+}
+
 void print_input(uint8_t appendNewline) {
     for(uint8_t i = 20; i-- > 0;)
         printf("%02x", input[i]);
@@ -49,12 +67,12 @@ void print_input(uint8_t appendNewline) {
 void print_report() {
     printf("Trying SHA ");
     print_input(FALSE);
-    printf("; covered %.40lf%% of search space", calc_converage_ratio()*100);
-    //Todo: calc and display ETA
+    printf("; covered %.40lf%% of search space; ", calc_converage_ratio()*100);
+    printETA();
     printf("\n");
 }
 
-void convert_string_to_sha(const char* instr) {
+void convert_string_to_sha(const char* instr, uint8_t outarr[]) {
     uint8_t idx = 0;
     int16_t i = strlen(instr);
 
@@ -70,14 +88,14 @@ void convert_string_to_sha(const char* instr) {
     while (i >= 2 && idx < 20) { //while there's still two chars left
         pStart -= 2;    //move the offset two to the left
         i -= 2;
-        input[idx] = (uint8_t)strtol(pStart, &pEnd, 16); //parse those two hex digits
+        outarr[idx] = (uint8_t)strtol(pStart, &pEnd, 16); //parse those two hex digits
         idx++;          //move up the array index
         *pStart = 0;    //write a bin 0 to the string to terminate the next group here
     }
     if (i == 1) { //if we got an uneven number of hex digits, we have a single digit left to parse
         pStart--; //move the offset pointer only one to the left
         i--;
-        input[idx] = (uint8_t)strtol(pStart, &pEnd, 16); //parse the remaining digit
+        outarr[idx] = (uint8_t)strtol(pStart, &pEnd, 16); //parse the remaining digit
     }
 
     printf("Starting with SHA ");
@@ -93,7 +111,9 @@ void handle_signal(int sig) {
 
 int main(int argc, char const *argv[]) {
     signal(SIGTERM, handle_signal);
+    #ifndef _WIN32
     signal(SIGUSR1, handle_signal);
+    #endif
 
     //process command line arguments (if any)
     for (uint8_t j = 1; j < argc; j++) {
@@ -101,12 +121,13 @@ int main(int argc, char const *argv[]) {
             display_help();
         else if (strcmp(argv[j], "-s") == 0) {
             if (j < argc-1) {
-                convert_string_to_sha(argv[j+1]);
+                convert_string_to_sha(argv[j+1], input);
             }
         }
     }
 
     uint32_t i = 0;
+    oldTicks = clock();
     do {
         increment_input();
         if (i++ >= REPORT_EVERY) {
