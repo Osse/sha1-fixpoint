@@ -43,6 +43,16 @@ double calc_converage_ratio() {
     return sha / exp;
 }
 
+double calc_space_size_left() {
+    double sha = 0;
+    double exp = 1;
+    for (uint8_t i = 0; i < 20; i++) {
+        sha += (target[i] - input[i]) * exp;
+        exp *= 256.0;
+    }
+    return sha / exp;
+}
+
 void printETA() {
     clock_t newTicks = clock();
     double stepSecs = ((double)(newTicks-oldTicks))/CLOCKS_PER_SEC;
@@ -111,6 +121,8 @@ int main(int argc, char const *argv[]) {
     signal(SIGUSR1, handle_signal);
     #endif
 
+    uint8_t nonDefaultTarget = FALSE;
+
     //process command line arguments (if any)
     for (uint8_t j = 1; j < argc; j++) {
         if (strcmp(argv[j], "-h") == 0)
@@ -122,16 +134,27 @@ int main(int argc, char const *argv[]) {
         }
         else if (strcmp(argv[j], "-t") == 0) {
             if (j < argc-1) {
+                for(uint8_t i = 20; i-- > 0;)
+                    target[i] = 0;
                 convert_string_to_sha(argv[j+1], target);
             }
         }
     }
-    
+
+    //check if target is non-default (less than all FFs)
+    for(uint8_t i = 20; i-- > 0;)
+        if (target[i] != 0xFF) {
+            nonDefaultTarget = TRUE;
+            break;
+        }
+
     printf("Starting with SHA: ");
     print_sha(TRUE, input);
     printf("Target SHA:        ");
     print_sha(TRUE, target);
-    printf("That means       %.40lf%% of total search space are assumed covered\n", calc_converage_ratio()*100);
+    printf("That means      %43.40lf%% of total search space are assumed covered\n", calc_converage_ratio()*100);
+    if (nonDefaultTarget)
+        printf("Considering     %43.40lf%% of total search space for this run\n", calc_space_size_left()*100);
     printf("\n");
 
     uint32_t i = 0;
