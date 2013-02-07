@@ -57,16 +57,16 @@ void printETA() {
     oldTicks = newTicks;
 }
 
-void print_input(uint8_t appendNewline) {
+void print_sha(uint8_t appendNewline, const uint8_t sha[]) {
     for(uint8_t i = 20; i-- > 0;)
-        printf("%02x", input[i]);
+        printf("%02x", sha[i]);
     if (appendNewline)
         printf("\n");
 }
 
 void print_report() {
     printf("Trying SHA ");
-    print_input(FALSE);
+    print_sha(FALSE, input);
     printf("; covered %.40lf%% of search space; ", calc_converage_ratio()*100);
     printETA();
     printf("\n");
@@ -99,12 +99,12 @@ void convert_string_to_sha(const char* instr, uint8_t outarr[]) {
     }
 
     printf("Starting with SHA ");
-    print_input(FALSE);
+    print_sha(FALSE, input);
     printf("; that means the first %.40lf%% of search space are already assumed covered\n", calc_converage_ratio()*100);
 }
 
 void handle_signal(int sig) {
-    print_input(TRUE);
+    print_sha(TRUE, input);
     if (sig == SIGTERM)
         exit(0);
 }
@@ -137,7 +137,7 @@ int main(int argc, char const *argv[]) {
         sha1_buffer((char*)input, 0, output);
     } while (memcmp(output, input, 20) != 0);
 
-    print_input(TRUE);
+    print_sha(TRUE, input);
 
     return 0;
 }
