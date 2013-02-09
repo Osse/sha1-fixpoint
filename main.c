@@ -19,7 +19,11 @@ int     gargc;
 char const  **gargv;
 
 void display_help(const char* progName) {
-    printf("SHA1 Fixpoint calculation program\nWill try to find a value x for which x==sha1(x) holds\n\n");
+    printf("SHA1 Fixpoint calculation program\nWill try to find a value x for which x==sha1(x) holds\n");
+    #ifdef GITVERSION
+    printf("Version: %s\n", GITVERSION);
+    #endif
+    printf("\n");
     printf("Usage:\n    %s [-s <starting SHA>] [-t <target SHA>] [other options...]\n\n", progName);
     printf("Options:\n");
     printf("  -h            print this help and exit\n");
