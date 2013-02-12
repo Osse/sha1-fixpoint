@@ -136,8 +136,10 @@ void handle_signal(int sig) {
         printf("\nExecution interrupted at SHA ");
         print_sha(FALSE, input);
         printf("; to continue at this SHA next time, you can use:\n  ");
+        uint8_t printedStart = FALSE;
         for (int i = 0; i < gargc; i++) {
             if (strcmp(*(gargv+i), "-s") == 0 && i < gargc-1) {
+                printedStart = TRUE;
                 printf("-s ");
                 print_sha(FALSE, input);
                 printf(" ");
@@ -146,6 +148,10 @@ void handle_signal(int sig) {
             else { 
                 printf("%s ", *(gargv+i));
             }
+        }
+        if (!printedStart) {
+            printf("-s ");
+            print_sha(FALSE, input);
         }
         printf("\n\n");
         exit(0);
@@ -207,6 +213,7 @@ int main(int argc, char const *argv[]) {
     printf("That means      %43.40lf%% of total search space are assumed covered\n", calc_converage_ratio()*100);
     if (nonDefaultTarget)
         printf("Considering     %43.40lf%% of total search space for this run\n", calc_space_size_left()*100);
+    printf("Printing a report line every %u SHAs\n", printReportEvery);
     printf("\n");
 
     uint32_t i = 0; 
