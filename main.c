@@ -5,7 +5,6 @@
 #include <time.h>
 #include "sha1.h"
 
-#define REPORT_EVERY 1000000
 #define TRUE 1
 #define FALSE 0
 
@@ -14,7 +13,8 @@ uint8_t output[20] = {0};
 uint8_t target[20] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 clock_t oldTicks;
-int32_t printHeaderEvery = 30;
+uint32_t printReportEvery = 1000000;
+uint32_t printHeaderEvery = 30;
 int     gargc;
 char const  **gargv;
 
@@ -29,8 +29,8 @@ void display_help(const char* progName) {
     printf("  -h            print this help and exit\n");
     printf("  -s <SHA>      starting SHA for this search\n");
     printf("  -t <SHA>      target SHA for this search (ending point)\n");
-    //printf("  -r <num>      print a report line every <num> SHAs\n");
-    printf("  -H <num>      print report header every <num> reports\n");
+    printf("  -r <num>      print a report line every <num> SHAs (0 to disable)\n");
+    printf("  -H <num>      print report header every <num> reports (0 to disable)\n");
     exit(0);
 }
 
@@ -76,7 +76,7 @@ void printETA() {
         sha += (target[i] - input[i]) * exp;
         exp *= 256.0;
     }
-    double etaYears = sha * stepSecs / REPORT_EVERY / 3600 / 24 / 365;
+    double etaYears = sha * stepSecs / printReportEvery / 3600 / 24 / 365;
     printf(" %6.3lfs | %.3le", stepSecs, etaYears);
     oldTicks = newTicks;
 }
@@ -182,7 +182,12 @@ int main(int argc, char const *argv[]) {
         }
         else if (strcmp(argv[j], "-H") == 0) {
             if (j < argc-1) {
-                printHeaderEvery = atoi(argv[++j]);
+                printHeaderEvery = (uint32_t)atol(argv[++j]);
+            }
+        }
+        else if (strcmp(argv[j], "-r") == 0) {
+            if (j < argc-1) {
+                printReportEvery = (uint32_t)atol(argv[++j]);
             }
         }
     }
@@ -205,12 +210,12 @@ int main(int argc, char const *argv[]) {
     printf("\n");
 
     uint32_t i = 0; 
-    int32_t hdrCtr = -1;
+    uint32_t hdrCtr = -1;
     oldTicks = clock();
     print_report_header(FALSE, TRUE);
     do {
         increment_input();
-        if (++i >= REPORT_EVERY) {
+        if ((printReportEvery != 0) && (++i >= printReportEvery)) {
             if ((printHeaderEvery != 0) && (++hdrCtr >= printHeaderEvery)) {
                 hdrCtr = 0;
                 print_report_header(TRUE,TRUE);
