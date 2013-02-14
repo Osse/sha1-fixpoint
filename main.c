@@ -230,7 +230,7 @@ int main(int argc, char const *argv[]) {
             i = 0;
             print_report();
         }
-        sha1_buffer((char*)input, 0, output);
+        sha1_buffer((char*)input, 20, output);
     } while (memcmp(output, input, 20) != 0);
 
     printf("Fixpoint found: ");
