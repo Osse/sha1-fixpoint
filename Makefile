@@ -23,7 +23,7 @@ $(EXECUTABLE): $(OBJS)
 	$(CC) $(OBJS) -o $(EXECUTABLE)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -MF "$(@:%.o=%.d)" "$<" -o "$@" 
+	$(CC) $(CFLAGS) -MF "$(@:%.o=%.d)" "$<" -o "$@"
 
 clean:
 	rm -rf $(OBJS) $(DEPS) $(EXECUTABLE)

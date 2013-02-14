@@ -148,7 +148,7 @@ void handle_signal(int sig) {
                 printf(" ");
                 i++;
             }
-            else { 
+            else {
                 printf("%s ", *(gargv+i));
             }
         }
@@ -219,11 +219,11 @@ int main(int argc, char const *argv[]) {
     printf("Printing a report line every %u SHAs\n", printReportEvery);
     printf("\n");
 
-    uint32_t i = 0; 
+    uint32_t i = 0;
     uint32_t hdrCtr = -1;
     oldTicks = clock();
     print_report_header(FALSE, TRUE);
-    sha1_buffer((char*)input, 20, output); //calc sha of starting input value 
+    sha1_buffer((char*)input, 20, output); //calc sha of starting input value
     while (memcmp(output, input, 20) != 0) { //while input and output are different
         increment_input();
         if ((printReportEvery != 0) && (++i >= printReportEvery)) {
