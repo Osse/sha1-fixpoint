@@ -220,7 +220,8 @@ int main(int argc, char const *argv[]) {
     uint32_t hdrCtr = -1;
     oldTicks = clock();
     print_report_header(FALSE, TRUE);
-    do {
+    sha1_buffer((char*)input, 20, output); //calc sha of starting input value 
+    while (memcmp(output, input, 20) != 0) { //while input and output are different
         increment_input();
         if ((printReportEvery != 0) && (++i >= printReportEvery)) {
             if ((printHeaderEvery != 0) && (++hdrCtr >= printHeaderEvery)) {
@@ -231,7 +232,7 @@ int main(int argc, char const *argv[]) {
             print_report();
         }
         sha1_buffer((char*)input, 20, output);
-    } while (memcmp(output, input, 20) != 0);
+    }
 
     printf("Fixpoint found: ");
     print_sha(TRUE, input);
