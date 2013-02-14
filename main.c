@@ -8,9 +8,14 @@
 #define TRUE 1
 #define FALSE 0
 
+//the SHA function wants these in byte-wise little-endian order (so that when
+//  you print them from low to high indices, the output is the desired ASCII
+//  output
 uint8_t input[20]  = {0};
 uint8_t output[20] = {0};
-uint8_t target[20] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t target[20] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                      0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                      0xFF, 0xFF};
 
 clock_t oldTicks;
 uint32_t printReportEvery = 1000000;
@@ -35,15 +40,13 @@ void display_help(const char* progName) {
 }
 
 void increment_input() {
-    int n;
-    input[0]++;
-    if (input[0] == 0) {
-        n = 1;
-        while (input[n] == 255)
-            n++;
-        input[n]++;
-        for(int i = 0; i < n; i++)
-            input[i] = 0;
+    for (int i = 0; i < 20; i++) {
+        if (input[19-i] < 255) { //we can increment this digit
+            input[19-i]++;
+            break;
+        } else { //digit overflow: set 0, go to next digit
+            input[19-i]=0;
+        }
     }
 }
 
@@ -51,7 +54,7 @@ double calc_converage_ratio() {
     double sha = 0;
     double exp = 1;
     for (uint8_t i = 0; i < 20; i++) {
-        sha += input[i] * exp;
+        sha += input[19-i] * exp;
         exp *= 256.0;
     }
     return sha / exp;
@@ -61,7 +64,7 @@ double calc_space_size_left() {
     double sha = 0;
     double exp = 1;
     for (uint8_t i = 0; i < 20; i++) {
-        sha += (target[i] - input[i]) * exp;
+        sha += (target[19-i] - input[19-i]) * exp;
         exp *= 256.0;
     }
     return sha / exp;
@@ -73,7 +76,7 @@ void printETA() {
     double sha = 0;
     double exp = 1;
     for (uint8_t i = 0; i < 20; i++) {
-        sha += (target[i] - input[i]) * exp;
+        sha += (target[19-i] - input[19-i]) * exp;
         exp *= 256.0;
     }
     double etaYears = sha * stepSecs / printReportEvery / 3600 / 24 / 365;
@@ -82,7 +85,7 @@ void printETA() {
 }
 
 void print_sha(uint8_t appendNewline, const uint8_t sha[]) {
-    for(uint8_t i = 20; i-- > 0;)
+    for(uint8_t i = 0; i < 20; i++)
         printf("%02x", sha[i]);
     if (appendNewline)
         printf("\n");
@@ -105,7 +108,7 @@ void print_report() {
 }
 
 void convert_string_to_sha(const char* instr, uint8_t outarr[]) {
-    uint8_t idx = 0;
+    uint8_t idx = 20;
     int16_t i = strlen(instr);
 
     if (i > 40) { //sanity check (SHA1 is max 40 chars long)
@@ -117,11 +120,11 @@ void convert_string_to_sha(const char* instr, uint8_t outarr[]) {
     strcpy(bufr, instr); //copy the input so we can manipulate it
     pStart = bufr + i; //start at the end of the string
 
-    while (i >= 2 && idx < 20) { //while there's still two chars left
+    while (i >= 2 && idx >= 0) { //while there's still two chars left
         pStart -= 2;    //move the offset two to the left
         i -= 2;
         outarr[idx] = (uint8_t)strtol(pStart, &pEnd, 16); //parse those two hex digits
-        idx++;          //move up the array index
+        idx--;          //move up the array index
         *pStart = 0;    //write a bin 0 to the string to terminate the next group here
     }
     if (i == 1) { //if we got an uneven number of hex digits, we have a single digit left to parse
@@ -181,7 +184,7 @@ int main(int argc, char const *argv[]) {
         }
         else if (strcmp(argv[j], "-t") == 0) {
             if (j < argc-1) {
-                for(uint8_t i = 20; i-- > 0;)
+                for(uint8_t i = 0; i < 20; i++)
                     target[i] = 0;
                 convert_string_to_sha(argv[++j], target);
             }
@@ -199,7 +202,7 @@ int main(int argc, char const *argv[]) {
     }
 
     //check if target is non-default (less than all FFs)
-    for(uint8_t i = 20; i-- > 0;)
+    for(uint8_t i = 0; i < 20; i++)
         if (target[i] != 0xFF) {
             nonDefaultTarget = TRUE;
             break;
