@@ -108,7 +108,7 @@ void print_report() {
 }
 
 void convert_string_to_sha(const char* instr, uint8_t outarr[]) {
-    uint8_t idx = 20;
+    uint8_t idx = 19;
     int16_t i = strlen(instr);
 
     if (i > 40) { //sanity check (SHA1 is max 40 chars long)
